@@ -6,26 +6,25 @@ import java.math.BigDecimal;
 @Schema(description = "Request to create a Product")
 public class ProductRequest {
 
-    @Schema(description = "Product type", example = "Beverage")
+    @Schema(description = "Product Type", example = "Azucar")
     private String type;
 
-    @Schema(description = "Brand", example = "Acme")
+    @Schema(description = "Brand", example = "Domino")
     private String brand;
 
-    @Schema(description = "Quantity (as string)", example = "1L")
+    @Schema(description = "Quantity", example = "1 Kg")
     private String quantity;
 
-    @Schema(description = "Price", example = "3.5")
+    @Schema(description = "Price", example = "1100")
     private BigDecimal price;
 
-    @Schema(description = "Store name", example = "StoreA")
+    @Schema(description = "Store Name", example = "Dia")
     private String store;
 
-    @Schema(description = "Category id to link the product to", example = "1")
-    private Long categoryId;
+    @Schema(description = "Product Category", example = "Almacen")
+    private String category;
 
-    public ProductRequest() {
-    }
+    public ProductRequest() {}
 
     public String getType() {
         return type;
@@ -67,11 +66,11 @@ public class ProductRequest {
         this.store = store;
     }
 
-    public Long getCategoryId() {
-        return categoryId;
+    public String getCategory() {
+        return category;
     }
 
-    public void setCategoryId(Long categoryId) {
-        this.categoryId = categoryId;
+    public void setCategory(String category) {
+        this.category = category;
     }
 }

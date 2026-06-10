@@ -7,8 +7,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+// ...existing imports...
 
 @Entity
 public class Product {
@@ -23,14 +22,12 @@ public class Product {
     
     private LocalDateTime priceDate = LocalDateTime.now();
     
-    @ManyToOne
-    @JoinColumn(name = "category_id")
-    private ProductCategory category;
+    private String category;
 
     public Product() {
     }
 
-    public Product(Long id, String type, String brand, String quantity, BigDecimal price, String store, LocalDateTime priceDate, ProductCategory category) {
+    public Product(Long id, String type, String brand, String quantity, BigDecimal price, String store, LocalDateTime priceDate, String category) {
         this.id = id;
         this.type = type;
         this.brand = brand;
@@ -97,11 +94,11 @@ public class Product {
         this.priceDate = priceDate;
     }
 
-    public ProductCategory getCategory() {
+    public String getCategory() {
         return category;
     }
 
-    public void setCategory(ProductCategory category) {
+    public void setCategory(String category) {
         this.category = category;
     }
 }
