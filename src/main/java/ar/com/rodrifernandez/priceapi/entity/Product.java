@@ -1,13 +1,12 @@
 package ar.com.rodrifernandez.priceapi.entity;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-// ...existing imports...
 
 @Entity
 public class Product {
@@ -20,14 +19,14 @@ public class Product {
     private BigDecimal price;
     private String store;
     
-    private LocalDateTime priceDate = LocalDateTime.now();
+    private LocalDate priceDate = LocalDate.now();
     
     private String category;
 
     public Product() {
     }
 
-    public Product(Long id, String type, String brand, String quantity, BigDecimal price, String store, LocalDateTime priceDate, String category) {
+    public Product(Long id, String type, String brand, String quantity, BigDecimal price, String store, LocalDate priceDate, String category) {
         this.id = id;
         this.type = type;
         this.brand = brand;
@@ -86,11 +85,11 @@ public class Product {
         this.store = store;
     }
 
-    public LocalDateTime getPriceDate() {
+    public LocalDate getPriceDate() {
         return priceDate;
     }
 
-    public void setPriceDate(LocalDateTime priceDate) {
+    public void setPriceDate(LocalDate priceDate) {
         this.priceDate = priceDate;
     }
 

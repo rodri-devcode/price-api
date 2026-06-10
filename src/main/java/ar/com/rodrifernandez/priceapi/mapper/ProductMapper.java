@@ -17,12 +17,12 @@ public class ProductMapper {
             return null;
         }
         Product product = new Product();
-        product.setType(request.getType());
-        product.setBrand(request.getBrand());
-        product.setQuantity(request.getQuantity());
-        product.setPrice(request.getPrice());
-        product.setStore(request.getStore());
-        product.setCategory(request.getCategory());
+        product.setType(request.type());
+        product.setBrand(request.brand());
+        product.setQuantity(request.quantity());
+        product.setPrice(request.price());
+        product.setStore(request.store());
+        product.setCategory(request.category());
         return product;
     }
 
@@ -30,15 +30,16 @@ public class ProductMapper {
         if (product == null) {
             return null;
         }
-        ProductResponse response = new ProductResponse();
-        response.setId(product.getId());
-        response.setType(product.getType());
-        response.setBrand(product.getBrand());
-        response.setQuantity(product.getQuantity());
-        response.setPrice(product.getPrice());
-        response.setStore(product.getStore());
-        response.setCategory(product.getCategory());
-        return response;
+        return new ProductResponse(
+            product.getId(),
+            product.getType(),
+            product.getBrand(),
+            product.getQuantity(),
+            product.getPrice(),
+            product.getStore(),
+            product.getPriceDate(),
+            product.getCategory()
+        );
     }
     
     public List<ProductResponse> toResponseList(List<Product> products) {
