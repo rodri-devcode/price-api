@@ -5,11 +5,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;
 
-/**
- * DTO uniforme que se devuelve al cliente en CUALQUIER situación de error.
- * Al ser un record inmutable, garantizamos que la respuesta nunca se muta
- * accidentalmente después de ser construida.
- */
 @Schema(description = "Estructura estándar de error devuelta por la API")
 public record ApiErrorResponse(
 
@@ -29,10 +24,6 @@ public record ApiErrorResponse(
         @Schema(description = "URI que originó el error", example = "/v1/products/99")
         String path
 ) {
-    /**
-     * Factory method estático para construir la respuesta de forma fluida.
-     * Centraliza la asignación del timestamp para evitar repetición en el handler.
-     */
     public static ApiErrorResponse of(int status, String error, String message, String path) {
         return new ApiErrorResponse(LocalDateTime.now(), status, error, message, path);
     }

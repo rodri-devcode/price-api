@@ -7,6 +7,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
 
 @Entity
 public class Product {
@@ -17,14 +18,11 @@ public class Product {
     private String brand;
     private String quantity;
     private BigDecimal price;
-    private String store;
-    
-    private LocalDate priceDate = LocalDate.now();
-    
+    private String store;    
+    private LocalDate priceDate;    
     private String category;
 
-    public Product() {
-    }
+    public Product() {}
 
     public Product(Long id, String type, String brand, String quantity, BigDecimal price, String store, LocalDate priceDate, String category) {
         this.id = id;
@@ -99,5 +97,10 @@ public class Product {
 
     public void setCategory(String category) {
         this.category = category;
+    }
+    
+    @PrePersist
+    protected void onPersist() {
+        this.priceDate = LocalDate.now();
     }
 }

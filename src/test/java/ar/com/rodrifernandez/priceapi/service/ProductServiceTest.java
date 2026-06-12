@@ -74,14 +74,11 @@ class ProductServiceTest {
     }
 
     @Test
-    void getByStore_emptyList() {
+    void getByStore_notFound() {
         when(repository.findByStoreIgnoreCase("unknown")).thenReturn(List.of());
-        when(mapper.toResponseList(List.of())).thenReturn(List.of());
 
-        List<ProductResponse> result = service.getByStore("unknown");
-
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
+        // Service throws ProductNotFoundException when no results are found for a store
+        assertThrows(ProductNotFoundException.class, () -> service.getByStore("unknown"));
     }
 
     @Test
@@ -94,6 +91,12 @@ class ProductServiceTest {
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals(sampleResponse, result.get(0));
+    }
+    
+    @Test
+    void getByType_notFound() {
+        when(repository.findByTypeIgnoreCase("unknown")).thenReturn(List.of());
+        assertThrows(ProductNotFoundException.class, () -> service.getByType("unknown"));
     }
 
     @Test
