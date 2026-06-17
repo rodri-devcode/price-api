@@ -1,15 +1,17 @@
 package ar.com.rodrifernandez.priceapi.controller;
 
+import ar.com.rodrifernandez.priceapi.dto.CategoryResponse;
 import ar.com.rodrifernandez.priceapi.dto.ProductRequest;
 import ar.com.rodrifernandez.priceapi.dto.ProductResponse;
+import ar.com.rodrifernandez.priceapi.exception.GlobalExceptionHandler;
+import ar.com.rodrifernandez.priceapi.exception.ProductNotFoundException;
 import ar.com.rodrifernandez.priceapi.service.ProductService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
-import ar.com.rodrifernandez.priceapi.exception.GlobalExceptionHandler;
-import ar.com.rodrifernandez.priceapi.exception.ProductNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -31,7 +33,7 @@ class ProductControllerTest {
     @Mock
     private ProductService productService;
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     private ProductResponse sampleResponse;
 
@@ -44,7 +46,11 @@ class ProductControllerTest {
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
 
-        sampleResponse = new ProductResponse(1L, "Azucar", "Domino", "1 Kg", new BigDecimal("1100"), "Dia", LocalDate.now(), "Almacen");
+        sampleResponse = new ProductResponse(
+                1L, "Azucar", "Domino", "1 Kg",
+                new BigDecimal("1100"), "Dia", LocalDate.now(),
+                new CategoryResponse(2L, "Almacen")
+        );
     }
 
     @Test
@@ -52,9 +58,10 @@ class ProductControllerTest {
         when(productService.getAll()).thenReturn(List.of(sampleResponse));
 
         mockMvc.perform(get("/v1/products").accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$[0].id").value(1));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].category.id").value(2))
+                .andExpect(jsonPath("$[0].category.name").value("Almacen"));
     }
 
     @Test
@@ -62,8 +69,9 @@ class ProductControllerTest {
         when(productService.getById(1L)).thenReturn(sampleResponse);
 
         mockMvc.perform(get("/v1/products/1").accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.id").value(1));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.category.name").value("Almacen"));
     }
 
     @Test
@@ -73,8 +81,7 @@ class ProductControllerTest {
         mockMvc.perform(get("/v1/products/2").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
-                .andExpect(jsonPath("$.message")
-                    .value("El producto con id 2 no fue encontrado."));
+                .andExpect(jsonPath("$.message").value("El producto con id 2 no fue encontrado."));
     }
 
     @Test
@@ -82,8 +89,8 @@ class ProductControllerTest {
         when(productService.getByStore("Dia")).thenReturn(List.of(sampleResponse));
 
         mockMvc.perform(get("/v1/products/store/Dia").accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$[0].store").value("Dia"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].store").value("Dia"));
     }
 
     @Test
@@ -91,20 +98,22 @@ class ProductControllerTest {
         when(productService.getByType("Azucar")).thenReturn(List.of(sampleResponse));
 
         mockMvc.perform(get("/v1/products/type/Azucar").accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$[0].type").value("Azucar"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].type").value("Azucar"));
     }
 
     @Test
     void create_returnsCreatedEntity() throws Exception {
-        ProductRequest req = new ProductRequest("Azucar", "Domino", "1 Kg", new BigDecimal("1100"), "Dia", "Almacen");
+        ProductRequest req = new ProductRequest("Azucar", "Domino", "1 Kg",
+                new BigDecimal("1100"), "Dia", "Almacen");
         when(productService.create(any(ProductRequest.class))).thenReturn(sampleResponse);
 
         mockMvc.perform(post("/v1/products")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(req)))
-            .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.id").value(1));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.category.name").value("Almacen"));
     }
 
     @Test
@@ -119,10 +128,7 @@ class ProductControllerTest {
         when(productService.getAll()).thenThrow(new RuntimeException("boom"));
 
         mockMvc.perform(get("/v1/products").accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isInternalServerError())
-            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.status").value(500));
-//            .andExpect(jsonPath("$.message").value("boom"));
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.status").value(500));
     }
-
 }

@@ -1,9 +1,9 @@
 package ar.com.rodrifernandez.priceapi.dto;
-
+ 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-
+ 
 @Schema(description = "Product response returned by API")
 public record ProductResponse(
     @Schema(description = "Product ID", example = "1") Long id,
@@ -13,5 +13,5 @@ public record ProductResponse(
     @Schema(description = "Price", example = "1100") BigDecimal price,
     @Schema(description = "Store Name", example = "Dia") String store,
     @Schema(description = "Price Date", example = "2023-01-01") LocalDate priceDate,
-    @Schema(description = "Category Name", example = "Almacen") String category
+    @Schema(description = "Product Category") CategoryResponse category
 ) {}

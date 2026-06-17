@@ -1,14 +1,20 @@
 package ar.com.rodrifernandez.priceapi.service;
 
+import ar.com.rodrifernandez.priceapi.dto.CategoryResponse;
 import ar.com.rodrifernandez.priceapi.dto.ProductRequest;
 import ar.com.rodrifernandez.priceapi.dto.ProductResponse;
 import ar.com.rodrifernandez.priceapi.entity.Product;
+import ar.com.rodrifernandez.priceapi.entity.ProductCategory;
+import ar.com.rodrifernandez.priceapi.exception.ProductNotFoundException;
 import ar.com.rodrifernandez.priceapi.mapper.ProductMapper;
+import ar.com.rodrifernandez.priceapi.repository.CategoryRepository;
 import ar.com.rodrifernandez.priceapi.repository.ProductRepository;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,7 +23,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.*;
-import ar.com.rodrifernandez.priceapi.exception.ProductNotFoundException;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -27,18 +32,26 @@ class ProductServiceTest {
     private ProductRepository repository;
 
     @Mock
+    private CategoryRepository categoryRepository;
+
+    @Mock
     private ProductMapper mapper;
 
     @InjectMocks
     private ProductService service;
 
+    private ProductCategory sampleCategory;
     private Product sampleEntity;
     private ProductResponse sampleResponse;
 
     @BeforeEach
     void setUp() {
-        sampleEntity = new Product(1L, "Azucar", "Domino", "1 Kg", new BigDecimal("1100"), "Dia", LocalDate.now(), "Almacen");
-        sampleResponse = new ProductResponse(1L, "Azucar", "Domino", "1 Kg", new BigDecimal("1100"), "Dia", LocalDate.now(), "Almacen");
+        sampleCategory = new ProductCategory("Almacen");
+        sampleEntity = new Product(1L, "Azucar", "Domino", "1 Kg",
+                new BigDecimal("1100"), "Dia", LocalDate.now(), sampleCategory);
+        sampleResponse = new ProductResponse(1L, "Azucar", "Domino", "1 Kg",
+                new BigDecimal("1100"), "Dia", LocalDate.now(),
+                new CategoryResponse(null, "Almacen"));
     }
 
     @Test
@@ -59,6 +72,7 @@ class ProductServiceTest {
     void getById_found() {
         when(repository.findById(1L)).thenReturn(Optional.of(sampleEntity));
         when(mapper.toResponse(sampleEntity)).thenReturn(sampleResponse);
+
         ProductResponse result = service.getById(1L);
 
         assertNotNull(result);
@@ -69,6 +83,7 @@ class ProductServiceTest {
     @Test
     void getById_notFound() {
         when(repository.findById(2L)).thenReturn(Optional.empty());
+
         assertThrows(ProductNotFoundException.class, () -> service.getById(2L));
         verify(repository).findById(2L);
     }
@@ -77,7 +92,6 @@ class ProductServiceTest {
     void getByStore_notFound() {
         when(repository.findByStoreIgnoreCase("unknown")).thenReturn(List.of());
 
-        // Service throws ProductNotFoundException when no results are found for a store
         assertThrows(ProductNotFoundException.class, () -> service.getByStore("unknown"));
     }
 
@@ -92,16 +106,21 @@ class ProductServiceTest {
         assertEquals(1, result.size());
         assertEquals(sampleResponse, result.get(0));
     }
-    
+
     @Test
     void getByType_notFound() {
         when(repository.findByTypeIgnoreCase("unknown")).thenReturn(List.of());
+
         assertThrows(ProductNotFoundException.class, () -> service.getByType("unknown"));
     }
 
     @Test
     void create_success() {
-        ProductRequest req = new ProductRequest("Azucar", "Domino", "1 Kg", new BigDecimal("1100"), "Dia", "Almacen");
+        ProductRequest req = new ProductRequest("Azucar", "Domino", "1 Kg",
+                new BigDecimal("1100"), "Dia", "Almacen");
+
+        when(categoryRepository.findByNameIgnoreCase("Almacen"))
+                .thenReturn(Optional.of(sampleCategory));
         when(mapper.toEntity(req)).thenReturn(sampleEntity);
         when(repository.save(sampleEntity)).thenReturn(sampleEntity);
         when(mapper.toResponse(sampleEntity)).thenReturn(sampleResponse);
@@ -110,12 +129,29 @@ class ProductServiceTest {
 
         assertNotNull(result);
         assertEquals(sampleResponse, result);
+        verify(categoryRepository).findByNameIgnoreCase("Almacen");
         verify(repository).save(sampleEntity);
     }
 
     @Test
+    void create_categoryNotFound_throwsProductNotFoundException() {
+        ProductRequest req = new ProductRequest("Azucar", "Domino", "1 Kg",
+                new BigDecimal("1100"), "Dia", "Inexistente");
+
+        when(categoryRepository.findByNameIgnoreCase("Inexistente"))
+                .thenReturn(Optional.empty());
+
+        assertThrows(ProductNotFoundException.class, () -> service.create(req));
+        verify(repository, never()).save(any());
+    }
+
+    @Test
     void create_repositoryThrows_exceptionPropagated() {
-        ProductRequest req = new ProductRequest("Azucar", "Domino", "1 Kg", new BigDecimal("1100"), "Dia", "Almacen");
+        ProductRequest req = new ProductRequest("Azucar", "Domino", "1 Kg",
+                new BigDecimal("1100"), "Dia", "Almacen");
+
+        when(categoryRepository.findByNameIgnoreCase("Almacen"))
+                .thenReturn(Optional.of(sampleCategory));
         when(mapper.toEntity(req)).thenReturn(sampleEntity);
         when(repository.save(sampleEntity)).thenThrow(new RuntimeException("db down"));
 
